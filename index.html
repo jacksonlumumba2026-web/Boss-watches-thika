@@ -24,6 +24,7 @@
     "addressCountry": "KE"
   },
   "openingHours": "Mo-Su 08:00-21:00",
+  "areaServed": ["Thika", "Makongeni", "Ruiru", "Juja", "Kimbo"],
   "sameAs": ["https://www.tiktok.com/@bosswatcheske"]
 }
 </script>
@@ -175,6 +176,17 @@
   .filter-chip{padding:9px 20px; font-size:12.5px; font-weight:500; border:1.5px solid var(--line-light); border-radius:30px; color:var(--text-muted); transition:all 0.3s;}
   .filter-chip.active, .filter-chip:hover{border-color:var(--gold-dark); color:var(--gold-dark); background:rgba(224,165,38,0.08);}
 
+  #priceFilterRow{margin-bottom:28px;}
+  #priceFilterRow .filter-chip{font-size:11.5px; padding:7px 16px;}
+
+  .shop-toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; padding-bottom:16px; border-bottom:1px solid var(--line-light);}
+  .results-count{font-size:13px; color:var(--text-muted);}
+  .sort-select{background:var(--white); border:1.5px solid var(--line-light); color:var(--text-dark); padding:10px 16px; border-radius:4px; font-size:13px; outline:none; cursor:pointer;}
+  .sort-select:focus{border-color:var(--gold-dark);}
+
+  .load-more-row{display:flex; justify-content:center; margin-top:36px;}
+  .load-more-row.hide{display:none;}
+
   .search-bar{display:flex; align-items:center; gap:10px; padding:13px 20px; margin:0 auto 40px; border:1.5px solid var(--line-light); border-radius:30px; background:var(--white); max-width:420px;}
   .search-bar svg{width:16px; height:16px; stroke:var(--text-muted); flex:none;}
   .search-bar input{flex:1; background:none; border:none; font-size:14px; outline:none; color:var(--text-dark);}
@@ -319,6 +331,8 @@
     .hero-grid{grid-template-columns:1fr; text-align:center;}
     .hero p.sub{margin-left:auto; margin-right:auto;}
     .hero-actions, .trust-mini-row{justify-content:center;}
+    .shop-toolbar{flex-direction:column; align-items:flex-start;}
+    .sort-select{width:100%;}
     .why-grid{grid-template-columns:repeat(2,1fr); gap:22px;}
     .cat-grid{grid-template-columns:repeat(3,1fr);}
     .product-grid{grid-template-columns:repeat(2,1fr);}
@@ -494,8 +508,28 @@
     <div class="filters reveal" id="filterRow">
       <button class="filter-chip active" data-cat="all">All</button>
     </div>
+    <div class="filters reveal" id="priceFilterRow">
+      <button class="filter-chip active" data-price="all">Any Price</button>
+      <button class="filter-chip" data-price="0-1000">Under 1,000</button>
+      <button class="filter-chip" data-price="1000-5000">1,000 – 5,000</button>
+      <button class="filter-chip" data-price="5000-15000">5,000 – 15,000</button>
+      <button class="filter-chip" data-price="15000-999999">15,000+</button>
+    </div>
+    <div class="shop-toolbar reveal">
+      <span class="results-count" id="resultsCount"></span>
+      <select id="sortSelect" class="sort-select" aria-label="Sort products">
+        <option value="featured">Sort: Featured</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="newest">Newest First</option>
+        <option value="name-asc">Name: A–Z</option>
+      </select>
+    </div>
     <div class="product-grid" id="shopGrid"></div>
     <p class="empty-state" id="emptyState">No timepieces match your search — try a different brand or category.</p>
+    <div class="load-more-row" id="loadMoreRow">
+      <button class="btn btn-outline-dark" id="loadMoreBtn">Load More Watches</button>
+    </div>
   </div>
 </section>
 
@@ -545,7 +579,7 @@
     <div class="faq-list reveal" id="faqList">
       <div class="faq-item"><button class="faq-q">Are your watches genuine? <span class="plus">+</span></button><div class="faq-a"><p>Yes — every watch we stock is checked for quality before it goes on the shelf. Ask us directly on WhatsApp if you have questions about a specific piece.</p></div></div>
       <div class="faq-item"><button class="faq-q">Can I order directly through WhatsApp? <span class="plus">+</span></button><div class="faq-a"><p>Yes — every listing has a direct WhatsApp order button that pre-fills the watch name, so we can confirm availability and arrange payment and delivery in one thread.</p></div></div>
-      <div class="faq-item"><button class="faq-q">Do you deliver outside Thika Town? <span class="plus">+</span></button><div class="faq-a"><p>Yes — for customers outside Thika, we can arrange courier delivery countrywide. Message us on WhatsApp to confirm cost and timing before you order.</p></div></div>
+      <div class="faq-item"><button class="faq-q">Do you deliver outside Thika Town? <span class="plus">+</span></button><div class="faq-a"><p>Yes — we regularly deliver to Makongeni, Ngoigwa, Ruiru, Juja, and Kimbo, and can arrange countrywide courier delivery elsewhere. Message us on WhatsApp to confirm cost and timing before you order.</p></div></div>
       <div class="faq-item"><button class="faq-q">Can I return or exchange a watch? <span class="plus">+</span></button><div class="faq-a"><p>If a watch has a fault straight out of the box, bring it back to the shop or message us on WhatsApp and we'll sort it out — just let us know as soon as you notice.</p></div></div>
       <div class="faq-item"><button class="faq-q">Do you sell watch straps and repairs too? <span class="plus">+</span></button><div class="faq-a"><p>Yes — message us on WhatsApp with what you need (strap replacement, battery, repair) and we'll let you know if we can help and how much it costs.</p></div></div>
     </div>
@@ -563,6 +597,7 @@
       <div class="reveal">
         <div class="map-frame"><iframe src="https://www.google.com/maps?q=Kwamenkrumah%20Street%2C%20Thika%2C%20Kenya&output=embed" title="Boss Watches Thika location" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
         <div class="contact-info-row"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 22s-8-7.2-8-13a8 8 0 0116 0c0 5.8-8 13-8 13z"/><circle cx="12" cy="9" r="3"/></svg><div><div class="lbl">Shop</div>Kwamenkrumah Street, Thika Town (near Witeithie House, opposite Tecno Shop)</div></div>
+        <div class="contact-info-row"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 12a9 9 0 1015-6.7M3 5v6h6"/></svg><div><div class="lbl">We Also Deliver To</div>Makongeni, Ngoigwa, Ruiru, Juja &amp; Kimbo</div></div>
         <div class="contact-info-row"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><div><div class="lbl">Hours</div>Mon – Sun, 08:00 – 21:00</div></div>
         <div class="contact-info-row"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 5a2 2 0 012-2h3l2 5-2 2a12 12 0 006 6l2-2 5 2v3a2 2 0 01-2 2A16 16 0 013 5z"/></svg><div><div class="lbl">WhatsApp</div><a href="https://wa.me/254714297438" target="_blank" rel="noopener">+254 714 297 438</a></div></div>
       </div>
@@ -917,7 +952,7 @@
       return {
         id: p.id, name: p.name, brand: p.brand, ref: p.ref_code, price: p.price,
         stock: p.stock_quantity, catSlug: p.categories?.slug, catName: p.categories?.name,
-        description: p.description, is_featured: p.is_featured,
+        description: p.description, is_featured: p.is_featured, createdAt: p.created_at,
         img: imgs[0]?.url || '',
         avgRating, reviewCount: ratings.length,
       };
@@ -956,8 +991,8 @@
 
   function setActiveCategory(cat){
     activeCat = cat;
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.cat === cat));
-    renderShop();
+    document.querySelectorAll('#filterRow .filter-chip').forEach(c => c.classList.toggle('active', c.dataset.cat === cat));
+    resetAndRenderShop();
   }
 
   function cardHTML(p, i){
@@ -998,20 +1033,63 @@
 
   const shopGrid = document.getElementById('shopGrid');
   const emptyState = document.getElementById('emptyState');
+  const loadMoreRow = document.getElementById('loadMoreRow');
+  const resultsCount = document.getElementById('resultsCount');
   let activeCat = 'all';
+  let activePrice = 'all';
+  let sortMode = 'featured';
   let query = '';
+  const PAGE_SIZE = 9;
+  let visibleCount = PAGE_SIZE;
 
-  function renderShop(){
-    const filtered = allProducts.filter(p => {
+  function getFilteredSorted(){
+    let list = allProducts.filter(p => {
       const matchesCat = activeCat === 'all' || p.catName === activeCat;
       const haystack = `${p.name} ${p.brand} ${p.catName} ${p.ref} ${p.description||''}`.toLowerCase();
-      return matchesCat && haystack.includes(query.toLowerCase());
+      const matchesQuery = haystack.includes(query.toLowerCase());
+      let matchesPrice = true;
+      if (activePrice !== 'all'){
+        const [min, max] = activePrice.split('-').map(Number);
+        matchesPrice = p.price >= min && p.price <= max;
+      }
+      return matchesCat && matchesQuery && matchesPrice;
     });
-    shopGrid.innerHTML = filtered.map((p,i)=>cardHTML(p,i)).join('');
+    switch (sortMode){
+      case 'price-asc': list.sort((a,b) => a.price - b.price); break;
+      case 'price-desc': list.sort((a,b) => b.price - a.price); break;
+      case 'newest': list.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); break;
+      case 'name-asc': list.sort((a,b) => a.name.localeCompare(b.name)); break;
+      default: list.sort((a,b) => (b.is_featured === true) - (a.is_featured === true));
+    }
+    return list;
+  }
+
+  function renderShop(){
+    const filtered = getFilteredSorted();
+    const visible = filtered.slice(0, visibleCount);
+    shopGrid.innerHTML = visible.map((p,i)=>cardHTML(p,i)).join('');
     emptyState.classList.toggle('show', filtered.length === 0);
+    resultsCount.textContent = filtered.length
+      ? `Showing ${visible.length} of ${filtered.length} watch${filtered.length === 1 ? '' : 'es'}`
+      : '';
+    loadMoreRow.classList.toggle('hide', visibleCount >= filtered.length);
     shopGrid.querySelectorAll('.reveal:not(.in)').forEach(el => io.observe(el));
   }
-  document.getElementById('searchInput').addEventListener('input', (e) => { query = e.target.value; renderShop(); });
+
+  function resetAndRenderShop(){ visibleCount = PAGE_SIZE; renderShop(); }
+
+  document.getElementById('searchInput').addEventListener('input', (e) => { query = e.target.value; resetAndRenderShop(); });
+  document.getElementById('sortSelect').addEventListener('change', (e) => { sortMode = e.target.value; resetAndRenderShop(); });
+  document.getElementById('loadMoreBtn').addEventListener('click', () => { visibleCount += PAGE_SIZE; renderShop(); });
+
+  document.querySelectorAll('#priceFilterRow .filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#priceFilterRow .filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activePrice = chip.dataset.price;
+      resetAndRenderShop();
+    });
+  });
 
   // =========================================================
   // PRODUCT MODAL
