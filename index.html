@@ -50,8 +50,8 @@
     --ease:cubic-bezier(.16,1,.3,1);
   }
   *{margin:0;padding:0;box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{background:var(--paper); color:var(--text-dark); font-family:'Inter',sans-serif; font-weight:400; line-height:1.6; overflow-x:hidden;}
+  html{scroll-behavior:smooth; overflow-x:hidden; width:100%;}
+  body{background:var(--paper); color:var(--text-dark); font-family:'Inter',sans-serif; font-weight:400; line-height:1.6; overflow-x:hidden; width:100%; max-width:100vw;}
   h1,h2,h3,h4{font-family:'Poppins',sans-serif; font-weight:700; letter-spacing:-0.01em;}
   .mono{font-family:'JetBrains Mono',monospace; letter-spacing:0.02em;}
   a{color:inherit; text-decoration:none;}
@@ -69,9 +69,9 @@
     transition:opacity 0.6s var(--ease), visibility 0.6s;
   }
   #loadIntro.hide{opacity:0; visibility:hidden; pointer-events:none;}
-  .intro-mark{width:74px; height:74px; position:relative;}
+  .intro-mark{width:96px; height:96px; position:relative; animation:pulse 1.3s ease-in-out infinite;}
   .intro-mark svg{width:100%; height:100%;}
-  .intro-mark .hand{transform-origin:50% 50%; animation:spin 1.4s linear infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1); opacity:1;} 50%{transform:scale(1.06); opacity:0.85;}}
   @keyframes spin{to{transform:rotate(360deg);}}
   .intro-text{font-family:'Poppins',sans-serif; font-weight:700; color:var(--gold-light); letter-spacing:0.08em; font-size:13px; text-transform:uppercase; opacity:0.9;}
 
@@ -96,7 +96,6 @@
   .brand{display:flex; align-items:center; gap:10px; font-family:'Poppins',sans-serif; font-size:19px; font-weight:700; color:var(--white); flex:none;}
   .brand-mark{width:32px; height:32px; flex:none;}
   .brand-mark svg{width:100%; height:100%;}
-  .brand-mark .hand{transform-origin:50% 50%; animation:spin 60s linear infinite;}
   .brand small{display:block; font-size:9px; font-weight:400; color:var(--gold-light); letter-spacing:0.08em; font-family:'Inter',sans-serif;}
 
   nav.main-nav{display:flex; gap:30px;}
@@ -314,6 +313,8 @@
   @media(max-width:980px){
     .topbar-left span:nth-child(2){display:none;}
     nav.main-nav{display:none;}
+    .nav-desktop-only{display:none;}
+    .nav-icons{gap:6px;}
     .menu-toggle{display:block;}
     .hero-grid{grid-template-columns:1fr; text-align:center;}
     .hero p.sub{margin-left:auto; margin-right:auto;}
@@ -338,14 +339,33 @@
 </head>
 <body>
 
+<!-- ============ SHARED LOGO SYMBOL (matches Boss Watches Thika's real badge) ============ -->
+<svg width="0" height="0" style="position:absolute;">
+  <defs>
+    <symbol id="bwtLogoMark" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="56" fill="#0B0B0C"/>
+      <circle cx="60" cy="60" r="56" fill="none" stroke="#E0A526" stroke-width="3"/>
+      <path id="taglineArc" d="M 20 82 A 42 42 0 0 0 100 82" fill="none"/>
+      <!-- gold band motif -->
+      <path d="M 18 60 A 42 42 0 0 1 102 60" fill="none" stroke="#E0A526" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
+      <!-- mini watch glyph -->
+      <rect x="46" y="16" width="28" height="20" rx="4" fill="#0B0B0C" stroke="#E0A526" stroke-width="2"/>
+      <circle cx="60" cy="26" r="6.5" fill="none" stroke="#F0D48A" stroke-width="1.4"/>
+      <line x1="60" y1="26" x2="60" y2="22" stroke="#F0D48A" stroke-width="1.3" stroke-linecap="round"/>
+      <line x1="60" y1="26" x2="63" y2="26" stroke="#F0D48A" stroke-width="1.3" stroke-linecap="round"/>
+      <text x="60" y="50" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="700" font-size="15" fill="#F0D48A">BOSS</text>
+      <text x="60" y="66" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="700" font-size="11.5" fill="#E0A526" letter-spacing="0.5">WATCHES THIKA</text>
+      <text font-family="Inter, sans-serif" font-weight="600" font-size="7" fill="#D9695F">
+        <textPath href="#taglineArc" startOffset="50%" text-anchor="middle">QUALITY &amp; TRUST</textPath>
+      </text>
+    </symbol>
+  </defs>
+</svg>
+
 <!-- ============ LOADING INTRO ============ -->
 <div id="loadIntro">
   <div class="intro-mark">
-    <svg viewBox="0 0 100 100" fill="none">
-      <circle cx="50" cy="50" r="46" stroke="#E0A526" stroke-width="4"/>
-      <g class="hand"><line x1="50" y1="50" x2="50" y2="22" stroke="#E0A526" stroke-width="5" stroke-linecap="round"/></g>
-      <line x1="50" y1="50" x2="70" y2="50" stroke="#F0D48A" stroke-width="4" stroke-linecap="round"/>
-    </svg>
+    <svg viewBox="0 0 120 120"><use href="#bwtLogoMark" xlink:href="#bwtLogoMark"/></svg>
   </div>
   <div class="intro-text">Boss Watches Thika</div>
 </div>
@@ -371,11 +391,7 @@
   <div class="nav-inner">
     <a href="#home" class="brand">
       <span class="brand-mark">
-        <svg viewBox="0 0 100 100" fill="none">
-          <circle cx="50" cy="50" r="46" stroke="#E0A526" stroke-width="4"/>
-          <g class="hand"><line x1="50" y1="50" x2="50" y2="24" stroke="#E0A526" stroke-width="5" stroke-linecap="round"/></g>
-          <line x1="50" y1="50" x2="68" y2="50" stroke="#F0D48A" stroke-width="4" stroke-linecap="round"/>
-        </svg>
+        <svg viewBox="0 0 120 120"><use href="#bwtLogoMark" xlink:href="#bwtLogoMark"/></svg>
       </span>
       <span>Boss Watches Thika<small>Quality &amp; Trust</small></span>
     </a>
@@ -387,10 +403,10 @@
       <a href="#contact">Contact Us</a>
     </nav>
     <div class="nav-icons">
-      <button class="icon-btn" id="accountBtn" aria-label="Account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></button>
-      <button class="icon-btn" id="wishlistNavBtn" aria-label="Wishlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6a5.5 5.5 0 019.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg></button>
+      <button class="icon-btn nav-desktop-only" id="accountBtn" aria-label="Account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></button>
+      <button class="icon-btn nav-desktop-only" id="wishlistNavBtn" aria-label="Wishlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6a5.5 5.5 0 019.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg></button>
       <button class="icon-btn" id="cartBtn" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 3h2l2.4 12.2a2 2 0 002 1.8h8.2a2 2 0 002-1.7L21 8H6"/></svg><span id="cartCount" class="badge mono">0</span></button>
-      <a href="https://wa.me/254714297438?text=Hello%20Boss%20Watches%20Thika" target="_blank" rel="noopener" class="btn btn-gold btn-sm" style="margin-left:6px;">Chat on WhatsApp</a>
+      <a href="https://wa.me/254714297438?text=Hello%20Boss%20Watches%20Thika" target="_blank" rel="noopener" class="btn btn-gold btn-sm nav-desktop-only" style="margin-left:6px;">Chat on WhatsApp</a>
       <button class="menu-toggle" id="menuToggle" aria-label="Open menu"><span></span><span></span><span></span></button>
     </div>
   </div>
@@ -579,7 +595,7 @@
     <div class="foot-grid">
       <div class="foot-brand">
         <a href="#home" class="brand" style="color:var(--white);">
-          <span class="brand-mark"><svg viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="46" stroke="#E0A526" stroke-width="4"/><line x1="50" y1="50" x2="50" y2="24" stroke="#E0A526" stroke-width="5" stroke-linecap="round"/><line x1="50" y1="50" x2="68" y2="50" stroke="#F0D48A" stroke-width="4" stroke-linecap="round"/></svg></span>
+          <span class="brand-mark"><svg viewBox="0 0 120 120"><use href="#bwtLogoMark" xlink:href="#bwtLogoMark"/></svg></span>
           Boss Watches Thika
         </a>
         <p>Quality watches, trusted service, happy customers. Based on Kwamenkrumah Street, Thika Town.</p>
@@ -654,9 +670,12 @@
   const WHATSAPP_NUMBER = '254714297438';
 
   // ---------- loading intro ----------
-  window.addEventListener('load', () => {
-    setTimeout(() => document.getElementById('loadIntro').classList.add('hide'), 900);
-  });
+  // Fixed timer instead of waiting on window 'load' — guarantees it always
+  // shows and always clears, even if a font/image request stalls.
+  setTimeout(() => {
+    const intro = document.getElementById('loadIntro');
+    if (intro) intro.classList.add('hide');
+  }, 1100);
 
   // ---------- toast ----------
   let toastTimer;
