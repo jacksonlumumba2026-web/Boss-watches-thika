@@ -27,6 +27,8 @@
   .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 22px; border-radius:2px; font-size:13px; letter-spacing:0.06em; text-transform:uppercase; border:none; transition:all .3s;}
   .btn-gold{background:var(--gold); color:var(--obsidian); font-weight:500;}
   .btn-gold:hover{background:var(--gold-light);}
+  .btn-block{width:100%;}
+  .btn:disabled{opacity:0.45; cursor:not-allowed;}
   .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ivory);}
   .btn-ghost:hover{border-color:var(--gold); color:var(--gold-light);}
   .btn-danger{background:transparent; border:1px solid var(--red); color:var(--red); padding:8px 14px; font-size:11px;}
@@ -73,6 +75,8 @@
   textarea.field{min-height:80px; resize:vertical;}
   .img-preview-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
   .img-preview-row img{width:56px; height:56px; object-fit:cover; border-radius:2px; border:1px solid var(--line);}
+  .img-thumb{position:relative; width:56px; height:56px;}
+  .img-thumb .remove-thumb{position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:50%; background:var(--red); color:#fff; font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center; border:none;}
   .toast{position:fixed; bottom:24px; left:50%; transform:translate(-50%,120%); background:var(--charcoal-2); border:1px solid var(--gold); padding:13px 24px; border-radius:3px; font-size:13px; transition:transform .35s; z-index:900; max-width:90vw; text-align:center;}
   .toast.show{transform:translate(-50%,0);}
   .panel{display:none;}
@@ -276,6 +280,15 @@
     <button class="modal-close" id="closeProductModal">&times;</button>
     <h3 id="productModalTitle">Add Product</h3>
     <input type="hidden" id="editProductId">
+
+    <div class="img-preview-row" id="imgPreviewRow"></div>
+    <p style="font-size:11.5px; color:var(--graphite); margin:-6px 0 10px;">Current photo(s) shown above. Selecting a new photo below will replace them when you save — use the × on a thumbnail to remove one without replacing.</p>
+    <input type="file" id="pImages" accept="image/*" multiple class="field" style="font-size:14px;">
+    <button class="btn btn-ghost btn-block" id="aiNameBtn" style="margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:8px;" disabled>
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.9 4.9L19 9l-5.1 1.9L12 16l-1.9-5.1L5 9l5.1-1.9L12 3z"/><path d="M19 15l.9 2.3L22 18l-2.1.7L19 21l-.9-2.3L16 18l2.1-.7L19 15z"/></svg>
+      <span id="aiNameBtnLabel">Select a photo first</span>
+    </button>
+
     <input type="text" class="field" id="pName" placeholder="Product name" style="font-size:16px;">
     <div class="form-row">
       <input type="text" class="field" id="pRef" placeholder="Reference code (e.g. REF. 0451)" style="font-size:16px;">
@@ -292,8 +305,6 @@
     <label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:14px;">
       <input type="checkbox" id="pActive" checked> Active (visible in shop)
     </label>
-    <div class="img-preview-row" id="imgPreviewRow"></div>
-    <input type="file" id="pImages" accept="image/*" multiple class="field" style="font-size:14px;">
     <button class="btn btn-gold" style="width:100%;" id="saveProductBtn">Save Product</button>
     <p class="error-text" id="productError"></p>
   </div>
@@ -463,8 +474,15 @@
     document.getElementById('pActive').checked = product ? product.is_active : true;
     document.getElementById('pImages').value = '';
     document.getElementById('productError').style.display = 'none';
+    const aiBtn = document.getElementById('aiNameBtn');
+    aiBtn.disabled = true;
+    document.getElementById('aiNameBtnLabel').textContent = 'Select a photo first';
     const imgs = (product?.product_images || []).sort((a,b)=>a.position-b.position);
-    document.getElementById('imgPreviewRow').innerHTML = imgs.map(i => `<img src="${i.url}" alt="">`).join('');
+    document.getElementById('imgPreviewRow').innerHTML = imgs.map(i => `
+      <div class="img-thumb">
+        <img src="${i.url}" alt="">
+        <button type="button" class="remove-thumb" onclick="removeExistingImage('${i.id}')" aria-label="Remove photo">&times;</button>
+      </div>`).join('');
     productModal.classList.add('open');
   }
 
@@ -472,6 +490,81 @@
     const p = allAdminProducts.find(x => x.id === id);
     if (p) openProductModal(p);
   };
+
+  window.removeExistingImage = async (imageId) => {
+    if (!confirm('Remove this photo?')) return;
+    const { error } = await sb.from('product_images').delete().eq('id', imageId);
+    if (error){ toast('Could not remove photo'); return; }
+    document.querySelectorAll(`.remove-thumb[onclick="removeExistingImage('${imageId}')"]`).forEach(btn => btn.closest('.img-thumb')?.remove());
+    toast('Photo removed');
+  };
+
+  // =========================================================
+  // AI PRODUCT NAMING — analyzes the selected photo and fills
+  // in name / description / category / ref code automatically.
+  // =========================================================
+  const aiNameBtn = document.getElementById('aiNameBtn');
+  const aiNameBtnLabel = document.getElementById('aiNameBtnLabel');
+
+  document.getElementById('pImages').addEventListener('change', (e) => {
+    if (e.target.files.length > 0){
+      aiNameBtn.disabled = false;
+      aiNameBtnLabel.textContent = '✨ Auto-fill name from photo';
+    } else {
+      aiNameBtn.disabled = true;
+      aiNameBtnLabel.textContent = 'Select a photo first';
+    }
+  });
+
+  function fileToBase64(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  aiNameBtn.addEventListener('click', async () => {
+    const files = document.getElementById('pImages').files;
+    if (!files.length){ toast('Choose a photo first'); return; }
+    const file = files[0];
+
+    aiNameBtn.disabled = true;
+    aiNameBtnLabel.textContent = 'Looking at the photo…';
+
+    try {
+      const base64 = await fileToBase64(file);
+      const existingNames = allAdminProducts.map(p => p.name);
+
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-product-name`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: base64, media_type: file.type || 'image/jpeg', existing_names: existingNames }),
+      });
+      const result = await res.json();
+
+      if (!res.ok || result.error){
+        toast('AI naming failed — enter details manually');
+        console.error(result);
+      } else {
+        if (result.name) document.getElementById('pName').value = result.name;
+        if (result.description) document.getElementById('pDescription').value = result.description;
+        if (result.ref_code) document.getElementById('pRef').value = result.ref_code;
+        if (result.category){
+          const match = categoryList.find(c => c.name === result.category);
+          if (match) document.getElementById('pCategory').value = match.id;
+        }
+        toast('Filled in from photo — review before saving');
+      }
+    } catch (err){
+      console.error(err);
+      toast('AI naming failed — enter details manually');
+    } finally {
+      aiNameBtn.disabled = false;
+      aiNameBtnLabel.textContent = '✨ Auto-fill name from photo';
+    }
+  });
 
   window.deleteProduct = async (id) => {
     if (!confirm('Delete this product? This cannot be undone.')) return;
@@ -516,9 +609,15 @@
       productId = data.id;
     }
 
-    // upload any new images
+    // upload any new images — when editing, new photos REPLACE the old ones
+    // rather than piling up alongside them (that was the bug: old + new both
+    // stayed in the database, and whichever the query happened to return
+    // first is what showed on the site).
     const files = document.getElementById('pImages').files;
     if (files.length){
+      if (id){
+        await sb.from('product_images').delete().eq('product_id', productId);
+      }
       for (let i = 0; i < files.length; i++){
         const file = files[i];
         const path = `${productId}/${Date.now()}-${file.name}`;
